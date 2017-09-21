@@ -4,6 +4,7 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 const data = require('./routes/data');
 const guests = require('./routes/guests');
@@ -15,6 +16,7 @@ const app = express();
 mongoose.Promise = global.Promise;
 
 app.use(logger('dev'));
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use(cookieParser());
