@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
+const data = require('./routes/data');
 const guests = require('./routes/guests');
 const parties = require('./routes/parties');
 
@@ -19,6 +20,7 @@ app.use(bodyParser.text());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/data', data);
 app.use('/guests', guests);
 app.use('/parties', parties);
 
