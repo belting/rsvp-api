@@ -112,7 +112,7 @@ router.post('/:partyId/rsvp', (req, res, next) => {
 
             return Promise.all(updateGuests).then(updatedGuests => {
                 party.responseAt = Date.now();
-                party.responseType = responseType;
+                party.responseType = responseType || ResponseType.ONLINE;
                 party.responseNote = responseNote;
                 party.guests = updatedGuests;
                 return party.save()
