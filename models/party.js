@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const Party = new Schema({
     responseType: String,
     responseAt: Date,
+    responseNote: String,
     name: String,
     addressTo: String,
     addressLineOne: String,
@@ -15,6 +16,23 @@ const Party = new Schema({
         type: Schema.ObjectId,
         ref: 'Guest'
     }]
+}, {
+    timestamps: true
 });
 
+class PartyClass {
+    toPublic() {
+        const {
+            _id,
+            guests
+        } = this;
+
+        return {
+            _id,
+            guests: guests.map(g => g.toPublic())
+        }
+    }
+}
+
+Party.loadClass(PartyClass);
 module.exports = mongoose.model('Party', Party);

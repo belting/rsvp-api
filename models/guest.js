@@ -12,6 +12,27 @@ const Guest = new Schema({
     },
     prevFirstName: String,
     prevLastName: String
+}, {
+    timestamps: true
 });
 
+class GuestClass {
+    toPublic() {
+        const {
+            _id,
+            firstName,
+            lastName,
+            allowPlusOne
+        } = this;
+
+        return {
+            _id,
+            firstName,
+            lastName,
+            allowPlusOne
+        };
+    }
+}
+
+Guest.loadClass(GuestClass);
 module.exports = mongoose.model('Guest', Guest);

@@ -5,7 +5,11 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const passport = require('passport');
+const AnonymousStrategy = require('passport-anonymous').Strategy;
 
+const basicStrategy = require('./auth/basic-strategy');
+const secured = require('./auth/secured');
 const data = require('./routes/data');
 const guests = require('./routes/guests');
 const parties = require('./routes/parties');
@@ -15,6 +19,8 @@ const app = express();
 // Use native promises
 mongoose.Promise = global.Promise;
 
+app.use(passport.initialize());
+app.use(passport.authenticate(['basic', 'anonymous'], { session: false }));
 app.use(logger('dev'));
 app.use(cors());
 app.use(bodyParser.json());
@@ -22,9 +28,14 @@ app.use(bodyParser.text());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/data', data);
+// Routes
+app.use('/data', secured, data);
 app.use('/guests', guests);
 app.use('/parties', parties);
+
+// Passport config
+passport.use(basicStrategy);
+passport.use(new AnonymousStrategy());
 
 // Database connection
 mongoose.connect(process.env.MONGO_URL, {

@@ -4,6 +4,8 @@ const router = express.Router();
 const Guest = require('../models/guest');
 const Party = require('../models/party');
 const ResponseType = require('../enums/response-type');
+const secured = require('../auth/secured');
+const { isAuthenticated } = require('../auth/helpers');
 
 router.get('/', (req, res, next) => {
     const { guestId } = req.query;
@@ -17,8 +19,17 @@ router.get('/', (req, res, next) => {
             }
         })
             .populate('guests')
-            .then(party => res.json(party))
+            .then(party => {
+                if (party.responseType !== ResponseType.NONE) {
+                    return res.status(409).send(`Party id ${party._id} has already RSVPed`);
+                }
+                res.json(party.toPublic())
+            })
             .catch(next);
+    }
+
+    if (!isAuthenticated(req)) {
+        return res.status(401).send('Unauthorized');
     }
 
     return Party.find()
@@ -27,7 +38,7 @@ router.get('/', (req, res, next) => {
         .catch(next);
 });
 
-router.get('/:partyId', (req, res, next) => {
+router.get('/:partyId', secured, (req, res, next) => {
     const { partyId } = req.params;
 
     return Party.findById(partyId)
@@ -38,13 +49,13 @@ router.get('/:partyId', (req, res, next) => {
 
 router.post('/:partyId/rsvp', (req, res, next) => {
     const { partyId } = req.params;
-    const { responseType, guests } = req.body;
+    const { responseNote, responseType, guests } = req.body;
 
     return Party.findById(partyId)
         .populate('guests')
         .then(party => {
             if (party.responseType !== ResponseType.NONE) {
-                return next(new Error(`Party id ${partyId} has already RSVPed`));
+                return res.status(409).send(`Party id ${partyId} has already RSVPed`);
             }
 
             guests.forEach(guest => {
@@ -102,6 +113,7 @@ router.post('/:partyId/rsvp', (req, res, next) => {
             return Promise.all(updateGuests).then(updatedGuests => {
                 party.responseAt = Date.now();
                 party.responseType = responseType;
+                party.responseNote = responseNote;
                 party.guests = updatedGuests;
                 return party.save()
                     .then(() => res.status(200).send());
